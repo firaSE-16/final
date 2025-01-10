@@ -1,0 +1,55 @@
+document.addEventListener("DOMContentLoaded", () => {
+    const signUpForm = document.querySelector("form");
+  
+    signUpForm.addEventListener("submit", async (e) => {
+      e.preventDefault(); // Prevent the default form submission
+  
+      // Get the form data
+      const name = document.querySelector("input[placeholder='Name']").value.trim();
+      const email = document.querySelector("input[placeholder='Email']").value.trim();
+      const password = document.querySelector("input[placeholder='Password']").value.trim();
+  
+      // Basic form validation
+      if (!name || !email || !password) {
+        alert("Please fill in all fields.");
+        return;
+      }
+  
+      // Create the request payload
+      const signUpData = {
+        name,
+        email,
+        password,
+      };
+  
+      try {
+        // Make a POST request to the signup endpoint
+        const response = await fetch('http://localhost:8000/auth/signup', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(signUpData),
+        });
+  
+        // Check if the response is successful
+        if (!response.ok) {
+          const errorData = await response.json();
+          alert(`Error: ${errorData.message || "Something went wrong."}`);
+          return;
+        }
+  
+        // Handle the response (JWT token)
+        const responseData = await response.json();
+        localStorage.setItem('token', responseData.token); // Store the token in localStorage (for further use, e.g., authentication)
+        
+        alert("Sign up successful! Redirecting to login...");
+        window.location.href = "login.html"; // Redirect to login page after successful sign up
+  
+      } catch (error) {
+        console.error("Error during sign up:", error);
+        alert("An error occurred while signing up.");
+      }
+    });
+  });
+  
