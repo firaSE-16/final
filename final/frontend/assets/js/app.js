@@ -40,11 +40,11 @@ async function displayCategories() {
 
     // Add "ALL" button and other category buttons
     categoriesContainer.innerHTML = `
-      <button class="btn btn-outline-primary mx-2 category-btn" data-category="all">ALL</button>
+      <button class="btn btn-outline-dark mx-2 category-btn" data-category="all">ALL</button>
       ${categories
         .map(
           (category) => `
-          <button class="btn btn-outline-primary mx-2 category-btn" data-category="${category}">
+          <button class="btn btn-outline-dark mx-2 category-btn" data-category="${category}">
             ${category.charAt(0).toUpperCase() + category.slice(1)}
           </button>`
         )
@@ -83,19 +83,19 @@ async function displayProducts(category = null) {
     productGrid.innerHTML = products
       .map(
         (product) => `
-        <div class="col-md-3">
-          <div class="card h-100 shadow-sm">
-            <img src="../../Backend${product.image}" class="card-img-top" alt="${
+        <div class="col-xl-4 p-3">
+          <div class="card h-100 shadow-sm" style="min-height: 400px;">
+            <img src="../../Backend${product.image}" class="card-img-top w-100 h-100" alt="${
           product.title
         }" style="height: 200px; object-fit: contain;">
             <div class="card-body">
               <h5 class="card-title text-truncate" title="${product.title}">${
           product.title
         }</h5>
-              <p class="card-text text-success fw-bold">$${product.price.toFixed(
+              <p class="card-text text-dark fw-bold">$${product.price.toFixed(
                 2
               )}</p>
-              <button class="btn btn-primary w-100 view-product-btn" data-product-id="${
+              <button class="btn btn-outline-dark w-100 view-product-btn" data-product-id="${
                 product._id
               }">View Details</button>
             </div>

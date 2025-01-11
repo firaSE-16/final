@@ -2,12 +2,12 @@
   <nav class="navbar navbar-expand-lg bg-white shadow-sm border-bottom">
     <div class="container d-flex justify-content-between">
       <div>
-        <a class="navbar-brand d-flex align-items-center justify-content-between text-dark" href="/">
+        <a class="navbar-brand d-flex align-items-center justify-content-between text-dark" href="#">
           <img
             width="45px"
             src="../assets/images/logo.png"
             alt="logo"
-            class="pb-3"
+            class="pb-3 px-1"
           />
           <span class="ms-2">GEBEYA</span>
           <!-- ms-2 adds some margin to the left of the text -->
@@ -31,12 +31,8 @@
               >Home</a
             >
           </li>
-          <li class="nav-item">
-            <a class="nav-link text-uppercase text-dark fw-bold" href="./cart.html">Cart</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link text-uppercase text-dark fw-bold" href="./checkout.html">Checkout</a>
-          </li>
+          
+       
           <li class="nav-item">
             <a class="nav-link text-uppercase text-dark fw-bold" href="./orders.html">Orders</a>
           </li>
@@ -58,15 +54,21 @@
         </form>
       </div>
       <div>
-        <a href="./cart.html" class="btn btn-primary position-relative ms-3">
-          <i class="bi bi-cart-fill"></i>
+  
+         <!-- login -->
+       
+        <a href="./cart.html" class="btn position-relative d-inline opacity-25">
+          <img style=" width: 30px; font-weight: 300; opacity: .75;" src="../assets/icons/shopping-cart-2-line.svg" alt="">
           <span
-            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-badge"
+          style="right:10px;"
+            class="position-absolute top-0 start-0 translate-middle badge rounded-pill bg-dark text-light cart-badge"
           >
             0
           </span>
         </a>
-        <a href="../pages/login.html" class="btn btn-outline-secondary ms-3 fw-bold">Login</a>
+        <a href="../pages/login.html" class=" mx-1 py-1 btn btn-dark opacity-25 fw-bold ">
+          Login        </a>
+       
       </div>
       <div>
     </div>
