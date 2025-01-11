@@ -21,6 +21,9 @@ const platform_express_1 = require("@nestjs/platform-express");
 const multer_1 = require("multer");
 const path_1 = require("path");
 const file_upload_service_1 = require("./file-upload/file-upload.service");
+const roles_decorator_1 = require("../auth/decorators/roles.decorator");
+const role_enums_1 = require("../auth/enums/role.enums");
+const roles_guard_1 = require("../auth/guards/roles.guard");
 let ProductController = class ProductController {
     constructor(productService, fileUploadService) {
         this.productService = productService;
@@ -56,6 +59,8 @@ let ProductController = class ProductController {
 };
 exports.ProductController = ProductController;
 __decorate([
+    (0, roles_decorator_1.Roles)(role_enums_1.Role.Admin),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
     (0, common_1.Post)(),
     (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('image', {
         storage: (0, multer_1.diskStorage)({
@@ -103,6 +108,8 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ProductController.prototype, "findOne", null);
 __decorate([
+    (0, roles_decorator_1.Roles)(role_enums_1.Role.Admin),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
     (0, common_1.Patch)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
@@ -111,6 +118,8 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ProductController.prototype, "update", null);
 __decorate([
+    (0, roles_decorator_1.Roles)(role_enums_1.Role.Admin),
+    (0, common_1.UseGuards)(roles_guard_1.RolesGuard),
     (0, common_1.Delete)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),

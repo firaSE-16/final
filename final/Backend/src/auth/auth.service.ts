@@ -20,7 +20,7 @@ export class AuthService {
     async signUp(signUpDto: SignUpDto): Promise<{ token: string }> {
         const { name, email, password } = signUpDto;
 
-        // Check if the user already exists
+        
         const existingUser = await this.useModel.findOne({ email });
         if (existingUser) {
             throw new HttpException('Email already in use', HttpStatus.BAD_REQUEST);
@@ -32,9 +32,10 @@ export class AuthService {
             name,
             email,
             password: hashedPassword,
+            role: 'user',
         });
 
-        const token = this.jwtService.sign({ id: user._id }, { expiresIn: '1h' });
+        const token = this.jwtService.sign({ id: user._id }, { expiresIn: '1d' });
 
         return { token };
     }
@@ -53,7 +54,7 @@ export class AuthService {
         }
 
         
-        const token = this.jwtService.sign({ id: user._id }, { expiresIn: '1h' });
+        const token = this.jwtService.sign({ id: user._id, role: user.role }, { expiresIn: '7d' });
 
         return { token };
     }

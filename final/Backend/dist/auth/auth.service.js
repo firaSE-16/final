@@ -36,8 +36,9 @@ let AuthService = class AuthService {
             name,
             email,
             password: hashedPassword,
+            role: 'user',
         });
-        const token = this.jwtService.sign({ id: user._id }, { expiresIn: '1h' });
+        const token = this.jwtService.sign({ id: user._id }, { expiresIn: '1d' });
         return { token };
     }
     async login(loginDto) {
@@ -50,7 +51,7 @@ let AuthService = class AuthService {
         if (!isPasswordMatched) {
             throw new common_1.HttpException('Invalid email or password', common_1.HttpStatus.UNAUTHORIZED);
         }
-        const token = this.jwtService.sign({ id: user._id }, { expiresIn: '1h' });
+        const token = this.jwtService.sign({ id: user._id, role: user.role }, { expiresIn: '7d' });
         return { token };
     }
     async logout(token) {

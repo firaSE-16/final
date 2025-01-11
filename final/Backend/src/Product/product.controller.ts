@@ -11,6 +11,7 @@ import {
   UploadedFile,
   HttpException,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -19,6 +20,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { FileUploadService } from './file-upload/file-upload.service'; // Import your file upload service
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Role } from 'src/auth/enums/role.enums';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 @Controller('products')
 export class ProductController {
@@ -27,6 +31,8 @@ export class ProductController {
     private readonly fileUploadService: FileUploadService, // Inject the file upload service
   ) {}
 
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   @Post()
   @UseInterceptors(
     FileInterceptor('image', {
@@ -77,6 +83,8 @@ export class ProductController {
     return this.productService.findOne(id);
   }
 
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -85,6 +93,8 @@ export class ProductController {
     return this.productService.update(id, updateProductDto);
   }
 
+  @Roles(Role.Admin)
+  @UseGuards(RolesGuard)
   @Delete(':id')
   async remove(@Param('id') id: string) {
     return this.productService.remove(id);
