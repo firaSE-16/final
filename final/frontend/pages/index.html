@@ -7,14 +7,30 @@
     <link rel="stylesheet" href="../assets/css/bootstrap.min.css" />
     <link rel="stylesheet" href="../assets/css/styles.css" />
     <link rel="stylesheet" href="../assets/icons/bootstrap-icons.css" />
+    <link rel="icon" type="image/png" href="../assets/images/icon.jpg" />
   </head>
   <body>
     <!-- Include Header -->
     <div id="header-placeholder"></div>
 
     <!-- Main Content -->
+    <div
+      class="row col-md-10 m-4 p-0 mx-auto d-flex align-items-center border border-2"
+    >
+      <div class="col-md-6 promo-text p-5">
+        <h6 class="text-uppercase">Our Bestsellers</h6>
+        <h1 class="display-4">Latest Arrivals</h1>
+        <a href="#" class="btn btn-outline-dark mt-3">Shop Now</a>
+      </div>
+      <div class="col-md-6 promo-image p-0 overflow-hidden">
+        <img
+          src="../assets/images/image.jpg"
+          alt="Model"
+          class="img-fluid w-100"
+        />
+      </div>
+    </div>
     <main>
-      <img src="../../Backend${product.image}">
       <div class="container mt-5">
         <h1>Welcome to Our Store!</h1>
         <p>Browse our products and find the best deals.</p>
@@ -32,6 +48,50 @@
         <div id="product-grid" class="row g-4"></div>
       </div>
     </main>
+
+    <div class="container py-5 my-5">
+      <div class="row text-center">
+        <!-- Feature 1 -->
+        <div class="col-md-4 mb-4">
+          <div class="d-flex flex-column align-items-center">
+            <img
+              src="../assets/images/exchange..jpg"
+              alt="Easy Exchange Policy"
+              class="mb-3"
+              style="width: 50px; height: 50px"
+            />
+            <h6>Easy Exchange Policy</h6>
+            <p class="text-muted">We offer hassle-free exchange policy</p>
+          </div>
+        </div>
+        <!-- Feature 2 -->
+        <div class="col-md-4 mb-4">
+          <div class="d-flex flex-column align-items-center">
+            <img
+              src="../assets/images/verififed.jpg"
+              alt="7 Days Return Policy"
+              class="mb-3"
+              style="width: 50px; height: 50px"
+            />
+            <h6>7 Days Return Policy</h6>
+            <p class="text-muted">We provide 7 days free return policy</p>
+          </div>
+        </div>
+        <!-- Feature 3 -->
+        <div class="col-md-4 mb-4">
+          <div class="d-flex flex-column align-items-center">
+            <img
+              src="../assets/images/support.jpg"
+              alt="Best Customer Support"
+              class="mb-3"
+              style="width: 50px; height: 50px"
+            />
+            <h6>Best Customer Support</h6>
+            <p class="text-muted">We provide 24/7 customer support</p>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Include Footer -->
     <div id="footer-placeholder"></div>
