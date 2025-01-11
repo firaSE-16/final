@@ -1,10 +1,17 @@
-<!-- components/header.html -->
 <header>
-  <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
-    <div class="container">
-      <a class="navbar-brand" href="../index.html">
-        <img src="../assets/images/logo.png" alt="Logo" width="120" />
-      </a>
+  <nav class="navbar navbar-expand-lg bg-white shadow-sm border-bottom">
+    <div class="container d-flex justify-content-between">
+      <div>
+        <a class="navbar-brand d-flex align-items-center justify-content-between text-dark" href="/">
+          <img
+            width="45px"
+            src="../assets/images/logo.png"
+            alt="logo"
+            class="pb-3"
+          />
+          <span class="ms-2">GEBEYA</span>
+          <!-- ms-2 adds some margin to the left of the text -->
+        </a>
       <button
         class="navbar-toggler"
         type="button"
@@ -16,39 +23,41 @@
       >
         <span class="navbar-toggler-icon"></span>
       </button>
-      <div class="collapse navbar-collapse" id="navbarNav">
+    </div>
+      <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item">
-            <a class="nav-link active" aria-current="page" href="./index.html"
+            <a class="nav-link text-uppercase text-dark fw-bold" aria-current="page" href="./index.html"
               >Home</a
             >
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="./cart.html">Cart</a>
+            <a class="nav-link text-uppercase text-dark fw-bold" href="./cart.html">Cart</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="./checkout.html">Checkout</a>
+            <a class="nav-link text-uppercase text-dark fw-bold" href="./checkout.html">Checkout</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="./orders.html">Orders</a>
+            <a class="nav-link text-uppercase text-dark fw-bold" href="./orders.html">Orders</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="./about.html">About</a>
+            <a class="nav-link text-uppercase text-dark fw-bold" href="./about.html">About</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="./contact.html">Contact</a>
+            <a class="nav-link text-uppercase text-dark fw-bold" href="./contact.html">Contact</a>
           </li>
         </ul>
-        <form class="d-flex ms-3">
+        <!-- <form class="d-flex ms-3">
           <input
-            class="form-control me-2"
+            class="form-control me-2 text-muted"
             type="search"
             placeholder="Search"
             aria-label="Search"
-          />
-          <button class="btn btn-outline-primary" type="submit">Search</button>
+          /> -->
+          <!-- <button class="btn btn-outline-dark" type="submit">Search</button> -->
         </form>
-
+      </div>
+      <div>
         <a href="./cart.html" class="btn btn-primary position-relative ms-3">
           <i class="bi bi-cart-fill"></i>
           <span
@@ -57,12 +66,9 @@
             0
           </span>
         </a>
-        <!-- Admin Panel Button -->
-
-        <a href="../admin/index.html" class="btn btn-secondary ml-5"
-          >Admin Panel</a
-        >
+        <a href="../pages/login.html" class="btn btn-outline-secondary ms-3 fw-bold">Login</a>
       </div>
+      <div>
     </div>
   </nav>
 </header>

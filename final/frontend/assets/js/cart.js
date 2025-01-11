@@ -6,7 +6,24 @@ function showSpinner() {
   const spinner = document.getElementById("loading-spinner");
   if (spinner) spinner.style.display = "flex";
 }
+async function loadComponent(url, placeholderId) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to load component: ${url}`);
+    }
+    const content = await response.text();
+    document.getElementById(placeholderId).innerHTML = content;
+  } catch (error) {
+    console.error(error);
+  }
+}
 
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadComponent("../components/header.html", "header-placeholder");
+  await loadComponent("../components/footer.html", "footer-placeholder");
+  // Initialize the cart badge on page load
+  });
 function hideSpinner() {
   const spinner = document.getElementById("loading-spinner");
   if (spinner) spinner.style.display = "none";
@@ -56,7 +73,7 @@ async function displayCart() {
         <div class="col-md-12">
           <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-3">
             <div class="d-flex align-items-center">
-              <img src="${product.image}" alt="${product.title}" style="width: 100px; height: auto; object-fit: contain;">
+              <img src="../../Backend${product.image}" alt="${product.title}" style="width: 100px; height: auto; object-fit: contain;">
               <div class="ms-3">
                 <h5>${product.title}</h5>
                 <p class="text-success">$${product.price && !isNaN(product.price) ? product.price.toFixed(2) : 'N/A'}</p>

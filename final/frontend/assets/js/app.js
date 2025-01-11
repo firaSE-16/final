@@ -85,7 +85,7 @@ async function displayProducts(category = null) {
         (product) => `
         <div class="col-md-3">
           <div class="card h-100 shadow-sm">
-            <img src="${product.image}" class="card-img-top" alt="${
+            <img src="../../Backend${product.image}" class="card-img-top" alt="${
           product.title
         }" style="height: 200px; object-fit: contain;">
             <div class="card-body">
@@ -142,7 +142,7 @@ async function displayProductDetails(productId) {
     productGrid.innerHTML = `
       <div class="col-12">
         <div class="card h-100 shadow-sm">
-          <img src="${product.image}" class="card-img-top mx-auto" alt="${
+          <img src="../../Backend${product.image}" class="card-img-top mx-auto" alt="${
       product.title
     }" style="height: 300px; width: auto; object-fit: contain;">
           <div class="card-body">

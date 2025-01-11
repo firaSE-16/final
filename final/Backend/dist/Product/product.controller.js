@@ -31,7 +31,7 @@ let ProductController = class ProductController {
             throw new common_1.HttpException('Invalid file type. Only image files are allowed', common_1.HttpStatus.BAD_REQUEST);
         }
         if (file) {
-            createProductDto.image = `/uploads/images/${file.filename}`;
+            createProductDto.image = `/uploads/products/${file.filename}`;
         }
         return this.productService.create(createProductDto);
     }
@@ -59,7 +59,10 @@ __decorate([
     (0, common_1.Post)(),
     (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('image', {
         storage: (0, multer_1.diskStorage)({
-            destination: '../uploads/images',
+            destination: (req, file, callback) => {
+                const uploadPath = './uploads/products';
+                callback(null, uploadPath);
+            },
             filename: (req, file, callback) => {
                 const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
                 const ext = (0, path_1.extname)(file.originalname);

@@ -6,6 +6,7 @@ import { LoginDto } from './dto/login.dto';
 export declare class AuthService {
     private useModel;
     private jwtService;
+    private tokenBlacklist;
     constructor(useModel: Model<User>, jwtService: JwtService);
     signUp(signUpDto: SignUpDto): Promise<{
         token: string;
@@ -13,4 +14,9 @@ export declare class AuthService {
     login(loginDto: LoginDto): Promise<{
         token: string;
     }>;
+    logout(token: string): Promise<{
+        message: string;
+    }>;
+    isTokenBlacklisted(token: string): Promise<boolean>;
+    validateToken(token: string): Promise<boolean>;
 }

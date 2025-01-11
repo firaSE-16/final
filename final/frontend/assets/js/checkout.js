@@ -11,9 +11,26 @@ function hideSpinner() {
   if (spinner) spinner.style.display = "none";
 }
 
-/**
- * Display the order summary using fetched product data.
- */
+
+async function loadComponent(url, placeholderId) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to load component: ${url}`);
+    }
+    const content = await response.text();
+    document.getElementById(placeholderId).innerHTML = content;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadComponent("../components/header.html", "header-placeholder");
+  await loadComponent("../components/footer.html", "footer-placeholder");
+  
+  });
+  
 async function displayCheckoutSummary() {
   const cart = getCart();
   const summaryContainer = document.getElementById("checkout-summary");
@@ -72,9 +89,7 @@ async function displayCheckoutSummary() {
   }
 }
 
-/**
- * Handle form submission by sending the order to the backend.
- */
+
 function handleCheckoutFormSubmission() {
   const form = document.getElementById("checkout-form");
 
@@ -120,8 +135,8 @@ function handleCheckoutFormSubmission() {
       if (response.ok) {
         const data = await response.json();
         alert(`Thank you for your order, ${name}! Your order has been placed.`);
-        localStorage.removeItem("cart"); // Clear the cart
-        window.location.href = "./orders.html"; // Redirect to the orders page
+        localStorage.removeItem("cart"); 
+        window.location.href = "./orders.html"; 
       } else {
         const errorData = await response.json();
         console.error("Error placing order:", errorData);
@@ -136,7 +151,7 @@ function handleCheckoutFormSubmission() {
   });
 }
 
-// Initialize the checkout page
+
 document.addEventListener("DOMContentLoaded", () => {
   displayCheckoutSummary();
   handleCheckoutFormSubmission();

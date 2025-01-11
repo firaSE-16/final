@@ -12,7 +12,6 @@ import { PassportModule } from '@nestjs/passport';
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
-    ConfigModule, // Ensure ConfigModule is included to provide environment variables
     PassportModule.register({ defaultStrategy: 'jwt' }), // Add PassportModule
     JwtModule.registerAsync({
       imports: [ConfigModule],

@@ -1,129 +1,112 @@
-const API_BASE_URL = "http://localhost:8000"; // Replace with your backend API base URL
-
-function showSpinner() {
-  const spinner = document.getElementById("loading-spinner");
-  if (spinner) spinner.style.display = "block";
-}
-
-function hideSpinner() {
-  const spinner = document.getElementById("loading-spinner");
-  if (spinner) spinner.style.display = "none";
-}
-
-/**
- * Fetch and display orders from the backend.
- */
-async function fetchAndDisplayOrders() {
-  const ordersContainer = document.getElementById("orders-container");
-  if (!ordersContainer) {
-    console.error("Orders container not found.");
-    return;
-  }
-
-  showSpinner();
+// Fetch orders from the backend and display them
+async function displayOrders() {
   try {
-    const response = await fetch(`${API_BASE_URL}/orders`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch orders");
-    }
+    const response = await fetch('http://localhost:8000/orders');
+    const data = await response.json();
+    const orders = data.orders;
+    const ordersContainer = document.getElementById('orders-container');
 
-    const orders = await response.json();
     if (orders.length === 0) {
       ordersContainer.innerHTML = `
-        <div class="alert alert-info text-center">
-          No orders found.
+        <div class="text-center">
+          <p>You have no orders. Add items to your cart and check them out!</p>
         </div>`;
       return;
     }
 
+    // Create HTML structure for each order
     ordersContainer.innerHTML = orders
-      .map(
-        (order) => `
-        <div class="col-md-4">
-          <div class="card">
-            <div class="card-header bg-primary text-white">
-              Order #${order._id}
-            </div>
+      .map((order) => {
+        // Create product list based on order.products and handle the product details correctly
+        const productList = order.products
+          .map((product) => {
+            const productId = product.productId;
+            const productTitle = productId ? productId.title : 'Unknown Product';
+            const productPrice = productId && productId.price ? productId.price.toFixed(2) : 'N/A';
+
+            return ` 
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>${productTitle} (x${product.quantity || 1})</span>
+                <span>$${productPrice}</span>
+              </li>`;
+          })
+          .join("");
+
+
+        return ` 
+          <div class="card mb-4" data-order-id="${order._id}">
             <div class="card-body">
-              <h5 class="card-title">Customer: ${order.customerName}</h5>
-              <p class="card-text"><strong>Email:</strong> ${order.customerEmail}</p>
-              <p class="card-text"><strong>Address:</strong> ${order.address}</p>
+              <h5 class="card-title">Order #${order._id}</h5>
+              <p><strong>Status:</strong> ${order.state}</p>
+              <p><strong>Shipping to:</strong> ${order.address}</p>
+              <h6>Products:</h6>
               <ul class="list-group mb-3">
-                ${order.products
-                  .map(
-                    (product) => `
-                  <li class="list-group-item">
-                    ${product.title} (x${product.quantity}) - $${(
-                      product.price * product.quantity
-                    ).toFixed(2)}
-                  </li>`
-                  )
-                  .join("")}
+                ${productList}
               </ul>
-              <p class="card-text"><strong>Total:</strong> $${order.total.toFixed(
-                2
-              )}</p>
-              <button class="btn btn-success btn-sm me-2" onclick="markOrderAsShipped(${order._id})">Mark as Shipped</button>
-              <button class="btn btn-danger btn-sm" onclick="deleteOrder(${order._id})">Delete</button>
+              ${order.state === 'Pending' ? 
+                `<button class="btn btn-success mark-received-btn" data-order-id="${order._id}">
+                  Mark as Received
+                </button>` : ''
+              }
             </div>
-          </div>
-        </div>`
-      )
+          </div>`;
+      })
       .join("");
+
+    // Add event listeners for "Mark as Received" buttons
+    document.querySelectorAll('.mark-received-btn').forEach((button) => {
+      button.addEventListener('click', (e) => {
+        const orderId = e.target.getAttribute('data-order-id');
+        markOrderAsReceived(orderId);
+      });
+    });
   } catch (error) {
     console.error("Error fetching orders:", error);
-    ordersContainer.innerHTML = `
-      <div class="alert alert-danger text-center">
-        Failed to load orders. Please try again later.
-      </div>`;
-  } finally {
-    hideSpinner();
   }
 }
 
-/**
- * Mark an order as shipped.
- */
-async function markOrderAsShipped(orderId) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/orders/${orderId}/ship`, {
-      method: "PATCH",
-    });
+// Mark an order as received, update the backend, and delete the order
+async function markOrderAsReceived(orderId) {
+  if (confirm("Are you sure you want to mark this order as received?")) {
+    try {
+      // Step 1: Update the order state to "Completed"
+      const response = await fetch(`http://localhost:8000/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          state: 'Completed',
+        }),
+      });
 
-    if (response.ok) {
-      alert(`Order #${orderId} marked as shipped.`);
-      fetchAndDisplayOrders();
-    } else {
-      alert("Failed to mark the order as shipped.");
+      if (response.status === 200) {
+        alert("Thank you! Your order has been marked as received.");
+
+        // Step 2: Delete the order after it has been completed
+        await fetch(`http://localhost:8000/orders/${orderId}`, {
+          method: 'DELETE',
+        });
+
+        // Step 3: Remove the order from the DOM
+        const orderElement = document.querySelector(`[data-order-id="${orderId}"]`);
+        if (orderElement) {
+          orderElement.remove();
+        }
+
+        // Optionally, refresh the list of orders (if you want to reload all orders from the server)
+        // displayOrders();
+      } else {
+        alert("Failed to update the order status.");
+      }
+    } catch (error) {
+      console.error("Error updating the order:", error);
+      alert("An error occurred while updating the order.");
     }
-  } catch (error) {
-    console.error("Error marking order as shipped:", error);
-  }
-}
-
-/**
- * Delete an order.
- */
-async function deleteOrder(orderId) {
-  if (!confirm(`Are you sure you want to delete order #${orderId}?`)) {
-    return;
-  }
-
-  try {
-    const response = await fetch(`${API_BASE_URL}/orders/${orderId}`, {
-      method: "DELETE",
-    });
-
-    if (response.ok) {
-      alert(`Order #${orderId} deleted successfully.`);
-      fetchAndDisplayOrders();
-    } else {
-      alert("Failed to delete the order.");
-    }
-  } catch (error) {
-    console.error("Error deleting order:", error);
   }
 }
 
 // Initialize the orders page
-document.addEventListener("DOMContentLoaded", fetchAndDisplayOrders);
+document.addEventListener('DOMContentLoaded', () => {
+  displayOrders();
+});

@@ -31,7 +31,10 @@ export class ProductController {
   @UseInterceptors(
     FileInterceptor('image', {
       storage: diskStorage({
-        destination: '../uploads/images', // Set the folder for storing images
+        destination: (req, file, callback) => {
+          const uploadPath = './uploads/products'; // Define a clear and valid path for your uploads
+          callback(null, uploadPath);
+        },
         filename: (req, file, callback) => {
           const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
           const ext = extname(file.originalname);
@@ -41,19 +44,19 @@ export class ProductController {
     }),
   )
   async create(@Body() createProductDto: CreateProductDto, @UploadedFile() file: Express.Multer.File) {
-    // File validation before proceeding
+    // Validate file type
     if (file && !this.fileUploadService.validateFileType(file)) {
       throw new HttpException('Invalid file type. Only image files are allowed', HttpStatus.BAD_REQUEST);
     }
-
-    // If the file is valid, set the image field in the DTO
+  
+    // Set image field if file is uploaded
     if (file) {
-      createProductDto.image = `/uploads/images/${file.filename}`;
+      createProductDto.image = `/uploads/products/${file.filename}`;
     }
-
+  
     return this.productService.create(createProductDto);
   }
-
+  
   @Get()
   async findAll() {
     return this.productService.findAll();

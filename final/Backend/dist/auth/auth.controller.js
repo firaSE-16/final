@@ -26,6 +26,13 @@ let AuthController = class AuthController {
     login(loginDto) {
         return this.authService.login(loginDto);
     }
+    async logout(req) {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            throw new common_1.HttpException('Token not provided', common_1.HttpStatus.BAD_REQUEST);
+        }
+        return this.authService.logout(token);
+    }
 };
 exports.AuthController = AuthController;
 __decorate([
@@ -42,6 +49,13 @@ __decorate([
     __metadata("design:paramtypes", [login_dto_1.LoginDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
+__decorate([
+    (0, common_1.Post)('logout'),
+    __param(0, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "logout", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

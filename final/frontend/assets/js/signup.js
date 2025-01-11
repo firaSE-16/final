@@ -1,9 +1,40 @@
+// login.js
+async function loadComponent(url, placeholderId) {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to load component: ${url}`);
+    }
+    const content = await response.text();
+    document.getElementById(placeholderId).innerHTML = content;
+  } catch (error) {
+    console.error(error);
+  }
+}
 document.addEventListener("DOMContentLoaded", () => {
     const signUpForm = document.querySelector("form");
   
     signUpForm.addEventListener("submit", async (e) => {
       e.preventDefault(); // Prevent the default form submission
   
+      async function loadComponent(url, placeholderId) {
+        try {
+          const response = await fetch(url);
+          if (!response.ok) {
+            throw new Error(`Failed to load component: ${url}`);
+          }
+          const content = await response.text();
+          document.getElementById(placeholderId).innerHTML = content;
+        } catch (error) {
+          console.error(error);
+        }
+      }
+      
+      document.addEventListener("DOMContentLoaded", async () => {
+        await loadComponent("../components/header.html", "header-placeholder");
+        await loadComponent("../components/footer.html", "footer-placeholder");
+        // Initialize the cart badge on page load
+        });
       // Get the form data
       const name = document.querySelector("input[placeholder='Name']").value.trim();
       const email = document.querySelector("input[placeholder='Email']").value.trim();

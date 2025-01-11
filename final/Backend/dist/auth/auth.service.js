@@ -19,14 +19,18 @@ const user_schma_1 = require("./schemas/user.schma");
 const mongoose_2 = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt_1 = require("@nestjs/jwt");
-const common_2 = require("@nestjs/common");
 let AuthService = class AuthService {
     constructor(useModel, jwtService) {
         this.useModel = useModel;
         this.jwtService = jwtService;
+        this.tokenBlacklist = new Set();
     }
     async signUp(signUpDto) {
         const { name, email, password } = signUpDto;
+        const existingUser = await this.useModel.findOne({ email });
+        if (existingUser) {
+            throw new common_1.HttpException('Email already in use', common_1.HttpStatus.BAD_REQUEST);
+        }
         const hashedPassword = await bcrypt.hash(password, 10);
         const user = await this.useModel.create({
             name,
@@ -40,14 +44,34 @@ let AuthService = class AuthService {
         const { email, password } = loginDto;
         const user = await this.useModel.findOne({ email });
         if (!user) {
-            throw new common_2.HttpException('Invalid email or password', common_2.HttpStatus.UNAUTHORIZED);
+            throw new common_1.HttpException('Invalid email or password', common_1.HttpStatus.UNAUTHORIZED);
         }
         const isPasswordMatched = await bcrypt.compare(password, user.password);
         if (!isPasswordMatched) {
-            throw new common_2.HttpException('Invalid email or password', common_2.HttpStatus.UNAUTHORIZED);
+            throw new common_1.HttpException('Invalid email or password', common_1.HttpStatus.UNAUTHORIZED);
         }
         const token = this.jwtService.sign({ id: user._id }, { expiresIn: '1h' });
         return { token };
+    }
+    async logout(token) {
+        this.tokenBlacklist.add(token);
+        return { message: 'Successfully logged out' };
+    }
+    async isTokenBlacklisted(token) {
+        return this.tokenBlacklist.has(token);
+    }
+    async validateToken(token) {
+        const isBlacklisted = await this.isTokenBlacklisted(token);
+        if (isBlacklisted) {
+            throw new common_1.HttpException('Token is invalidated', common_1.HttpStatus.UNAUTHORIZED);
+        }
+        try {
+            this.jwtService.verify(token);
+            return true;
+        }
+        catch (error) {
+            throw new common_1.HttpException('Invalid token', common_1.HttpStatus.UNAUTHORIZED);
+        }
     }
 };
 exports.AuthService = AuthService;

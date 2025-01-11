@@ -1,148 +1,120 @@
-import { fetchCartProducts } from "../fetch-api/api.js";
-import { getCart } from "./updateCartBadge.js";
 
-function showSpinner() {
-  const spinner = document.getElementById("loading-spinner");
-  if (spinner) spinner.style.display = "flex";
-}
-
-function hideSpinner() {
-  const spinner = document.getElementById("loading-spinner");
-  if (spinner) spinner.style.display = "none";
-}
-
-/**
- * Display the order summary using fetched product data.
- */
-async function displayCheckoutSummary() {
-  const cart = getCart();
-  const summaryContainer = document.getElementById("checkout-summary");
-  const form = document.getElementById("checkout-form");
-
-  if (!summaryContainer) {
-    console.error("Checkout summary container not found.");
-    return;
-  }
-
-  if (cart.length === 0) {
-    form.style.display = "none";
-    summaryContainer.innerHTML = `
-      <div class="text-center">
-        <p>Your cart is empty. Go back to products and add some items.</p>
-      </div>`;
-    return;
-  }
-
-  form.style.display = "block";
-  showSpinner();
-
+ 
+async function loadComponent(url, placeholderId) {
   try {
-    const products = await fetchCartProducts(cart);
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Failed to load component: ${url}`);
+    }
+    const content = await response.text();
+    document.getElementById(placeholderId).innerHTML = content;
+  } catch (error) {
+    console.error(error);
+  }
+}
 
-    let total = 0;
-    summaryContainer.innerHTML = `
-      <h4>Order Summary</h4>
-      <ul class="list-group mb-4">
-        ${products
-          .map((product, index) => {
-            const item = cart[index];
-            const subtotal = item.quantity * product.price;
-            total += subtotal;
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadComponent("../components/header.html", "header-placeholder");
+  await loadComponent("../components/footer.html", "footer-placeholder");
+  // Initialize the cart badge on page load
+  });
+  
+  
+// Fetch orders from the backend and display them
+async function displayOrders() {
+  try {
+    const response = await axios.get('http://localhost:8000/orders');
+    const orders = response.data.orders;
+    const ordersContainer = document.getElementById('orders-container');
+
+    if (orders.length === 0) {
+      ordersContainer.innerHTML = `
+        <div class="text-center">
+          <p>You have no orders. Add items to your cart and check them out!</p>
+        </div>`;
+      return;
+    }
+
+    ordersContainer.innerHTML = orders
+      .map((order) => {
+        const productList = order.products
+          .map((product) => {
+            // Access the productId object directly since it now contains details
+            const productTitle = product.productId ? product.productId.title : 'Unknown Product';
+            const productPrice = product.productId && product.productId.price ? product.productId.price.toFixed(2) : 'N/A';
 
             return `
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-              <span>${product.title} (x${item.quantity})</span>
-              <span>$${subtotal.toFixed(2)}</span>
-            </li>`;
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>${productTitle} (x${product.quantity || 1})</span>
+                <span>$${productPrice}</span>
+              </li>`;
           })
-          .join("")}
-        <li class="list-group-item d-flex justify-content-between align-items-center fw-bold">
-          <span>Total</span>
-          <span>$${total.toFixed(2)}</span>
-        </li>
-      </ul>`;
+          .join("");
+
+        return `
+          <div class="card mb-4" data-order-id="${order._id}">
+            <div class="card-body">
+              <h5 class="card-title">Order #${order._id}</h5>
+              <p><strong>Status:</strong> ${order.state}</p>
+              <p><strong>Shipping to:</strong> ${order.address}</p>
+              <h6>Products:</h6>
+              <ul class="list-group mb-3">
+                ${productList}
+              </ul>
+              <button class="btn btn-success mark-received-btn" data-order-id="${order._id}">
+                Mark as Received
+              </button>
+            </div>
+          </div>`;
+      })
+      .join("");
+
+    // Add event listeners for "Mark as Received" buttons
+    document.querySelectorAll('.mark-received-btn').forEach((button) => {
+      button.addEventListener('click', (e) => {
+        const orderId = e.target.getAttribute('data-order-id');
+        markOrderAsReceived(orderId);
+      });
+    });
   } catch (error) {
-    console.error("Error fetching cart products:", error);
-    summaryContainer.innerHTML = `
-      <div class="alert alert-danger">
-        Failed to load the order summary. Please try again later.
-      </div>`;
-  } finally {
-    hideSpinner();
+    console.error("Error fetching orders:", error);
   }
 }
 
-/**
- * Handle form submission by sending the order to the backend.
- */
-function handleCheckoutFormSubmission() {
-  const form = document.getElementById("checkout-form");
-
-  if (!form) {
-    console.error("Checkout form not found.");
-    return;
-  }
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-
-    const name = document.getElementById("name").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const address = document.getElementById("address").value.trim();
-
-    if (!name || !email || !address) {
-      alert("Please fill in all required fields.");
-      return;
-    }
-
-    const cart = getCart();
-    if (cart.length === 0) {
-      alert("Your cart is empty. Please add items to the cart.");
-      return;
-    }
-
-    
-    showSpinner();
+// Mark an order as received, update the backend, and delete the order
+async function markOrderAsReceived(orderId) {
+  if (confirm("Are you sure you want to mark this order as received?")) {
     try {
-
-      
-    
-      const response = await fetch("http://localhost:8000/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customerName: name,
-          customerEmail: email,
-          address,
-          products: cart.map((item) => ({
-            productId: item._id,
-            quantity: item.quantity,
-          })),
-        }),
+      // Step 1: Update the order state to "Completed"
+      const response = await axios.patch(`http://localhost:8000/orders/${orderId}`, {
+        state: 'Completed',
       });
 
-      if (response.ok) {
-        alert(`Thank you for your order, ${name}! Your order has been placed.`);
-        localStorage.removeItem("cart"); // Clear the cart
-        window.location.href = "./orders.html"; // Redirect to the orders page
+      if (response.status === 200) {
+        alert("Thank you! Your order has been marked as received.");
+        
+        // Step 2: Delete the order after it has been completed
+        await axios.delete(`http://localhost:8000/orders/${orderId}`);
+        
+        // Step 3: Remove the order from the DOM
+        const orderElement = document.querySelector(`[data-order-id="${orderId}"]`);
+        if (orderElement) {
+          orderElement.remove();
+        }
+
+        // Optionally, refresh the list of orders (if you want to reload all orders from the server)
+        // displayOrders(); 
       } else {
-      console.log(cart)
-      
-        const errorData = await response.json();
-        console.error("Error placing order:", errorData);
-        alert("Failed to place the order. Please try again.");
+        alert("Failed to update the order status.");
       }
     } catch (error) {
-      console.error("Error:", error);
-      alert("An error occurred. Please try again.");
-    } finally {
-      hideSpinner();
+      console.error("Error updating the order:", error);
+      alert("An error occurred while updating the order.");
     }
-  });
+  }
 }
 
-// Initialize the checkout page
-document.addEventListener("DOMContentLoaded", () => {
-  displayCheckoutSummary();
-  handleCheckoutFormSubmission();
+// Initialize the orders page
+document.addEventListener('DOMContentLoaded', () => {
+  displayOrders();
 });
