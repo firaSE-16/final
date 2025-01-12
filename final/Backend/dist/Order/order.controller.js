@@ -17,14 +17,20 @@ exports.OrderController = void 0;
 const common_1 = require("@nestjs/common");
 const order_service_1 = require("./order.service");
 const create_order_dto_1 = require("./dto/create-order.dto");
-const update_order_dto_1 = require("./dto/update-order.dto");
+const roles_decorator_1 = require("../auth/decorators/roles.decorator");
+const role_enums_1 = require("../auth/enums/role.enums");
+const order_schema_1 = require("./schema/order.schema");
+const jwt_auth_guard_1 = require("../auth/guards/jwt-auth.guard");
+const roles_guard_1 = require("../auth/guards/roles.guard");
 let OrderController = OrderController_1 = class OrderController {
     constructor(orderService) {
         this.orderService = orderService;
         this.logger = new common_1.Logger(OrderController_1.name);
     }
-    async create(createOrderDto) {
+    async create(createOrderDto, req) {
         try {
+            const userId = req.user.id;
+            createOrderDto.userId = userId;
             const order = await this.orderService.create(createOrderDto);
             return {
                 status: common_1.HttpStatus.CREATED,
@@ -37,9 +43,10 @@ let OrderController = OrderController_1 = class OrderController {
             throw new common_1.InternalServerErrorException('Unable to create order. Please try again.');
         }
     }
-    async findAll() {
+    async findAll(req) {
         try {
-            const orders = await this.orderService.findAll();
+            const userId = req.user.id;
+            const orders = await this.orderService.findByUserId(userId);
             return { status: common_1.HttpStatus.OK, orders };
         }
         catch (error) {
@@ -47,9 +54,13 @@ let OrderController = OrderController_1 = class OrderController {
             throw new common_1.InternalServerErrorException('Unable to fetch orders. Please try again.');
         }
     }
-    async findOne(id) {
+    async findOne(id, req) {
         try {
+            const userId = req.user.id;
             const order = await this.orderService.findOne(id);
+            if (order.userId !== userId) {
+                throw new common_1.NotFoundException('Order not found');
+            }
             return { status: common_1.HttpStatus.OK, order };
         }
         catch (error) {
@@ -60,33 +71,45 @@ let OrderController = OrderController_1 = class OrderController {
             throw new common_1.InternalServerErrorException('Unable to fetch the order. Please try again.');
         }
     }
-    async update(id, updateOrderDto) {
+    async findAllForAdmin() {
         try {
-            const updatedOrder = await this.orderService.update(id, updateOrderDto);
-            return {
-                status: common_1.HttpStatus.OK,
-                message: 'Order updated successfully',
-                updatedOrder,
-            };
+            const orders = await this.orderService.findAll();
+            return { status: common_1.HttpStatus.OK, orders };
         }
         catch (error) {
-            if (error instanceof common_1.NotFoundException) {
-                throw error;
-            }
-            this.logger.error(`Error updating order with ID "${id}":`, error);
-            throw new common_1.InternalServerErrorException('Unable to update the order. Please try again.');
+            this.logger.error('Error retrieving orders:', error);
+            throw new common_1.InternalServerErrorException('Unable to fetch orders. Please try again.');
         }
     }
-    async remove(id) {
+    async markAsReceived(id, req) {
         try {
-            await this.orderService.remove(id);
+            const userId = req.user.id;
+            const order = await this.orderService.findOne(id);
+            if (order.userId !== userId) {
+                throw new common_1.NotFoundException('Order not found');
+            }
+            order.state = order_schema_1.OrderState.COMPLETED;
+            await this.orderService.update(id, order);
+            return { status: common_1.HttpStatus.OK, message: 'Order marked as received' };
         }
         catch (error) {
-            if (error instanceof common_1.NotFoundException) {
-                throw error;
+            this.logger.error('Error marking order as received:', error);
+            throw new common_1.InternalServerErrorException('Unable to mark order as received. Please try again.');
+        }
+    }
+    async remove(id, req) {
+        try {
+            const userId = req.user.id;
+            const order = await this.orderService.findOne(id);
+            if (order.userId !== userId) {
+                throw new common_1.NotFoundException('Order not found');
             }
-            this.logger.error(`Error deleting order with ID "${id}":`, error);
-            throw new common_1.InternalServerErrorException('Unable to delete the order. Please try again.');
+            await this.orderService.remove(id);
+            return { status: common_1.HttpStatus.OK, message: 'Order deleted successfully' };
+        }
+        catch (error) {
+            this.logger.error('Error deleting order:', error);
+            throw new common_1.InternalServerErrorException('Unable to delete order. Please try again.');
         }
     }
 };
@@ -94,41 +117,52 @@ exports.OrderController = OrderController;
 __decorate([
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [create_order_dto_1.CreateOrderDto]),
+    __metadata("design:paramtypes", [create_order_dto_1.CreateOrderDto, Object]),
     __metadata("design:returntype", Promise)
 ], OrderController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)(),
+    __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", []),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], OrderController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Get)(':id'),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], OrderController.prototype, "findOne", null);
 __decorate([
-    (0, common_1.Patch)(':id'),
-    __param(0, (0, common_1.Param)('id')),
-    __param(1, (0, common_1.Body)()),
+    (0, roles_decorator_1.Roles)(role_enums_1.Role.Admin),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_order_dto_1.UpdateOrderDto]),
+    __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
-], OrderController.prototype, "update", null);
+], OrderController.prototype, "findAllForAdmin", null);
+__decorate([
+    (0, common_1.Patch)(':id/received'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], OrderController.prototype, "markAsReceived", null);
 __decorate([
     (0, common_1.Delete)(':id'),
-    (0, common_1.HttpCode)(common_1.HttpStatus.NO_CONTENT),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], OrderController.prototype, "remove", null);
 exports.OrderController = OrderController = OrderController_1 = __decorate([
     (0, common_1.Controller)('orders'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __metadata("design:paramtypes", [order_service_1.OrderService])
 ], OrderController);
 //# sourceMappingURL=order.controller.js.map

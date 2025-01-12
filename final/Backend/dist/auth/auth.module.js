@@ -23,6 +23,7 @@ exports.AuthModule = AuthModule = __decorate([
     (0, common_1.Module)({
         imports: [
             mongoose_1.MongooseModule.forFeature([{ name: user_schma_1.User.name, schema: user_schma_1.UserSchema }]),
+            config_1.ConfigModule,
             passport_1.PassportModule.register({ defaultStrategy: 'jwt' }),
             jwt_1.JwtModule.registerAsync({
                 imports: [config_1.ConfigModule],
@@ -35,7 +36,7 @@ exports.AuthModule = AuthModule = __decorate([
         ],
         controllers: [auth_controller_1.AuthController],
         providers: [auth_service_1.AuthService, jwt_startegy_1.JwtStrategy],
-        exports: [auth_service_1.AuthService, jwt_startegy_1.JwtStrategy, passport_1.PassportModule],
+        exports: [auth_service_1.AuthService, jwt_startegy_1.JwtStrategy, passport_1.PassportModule, jwt_1.JwtModule],
     })
 ], AuthModule);
 //# sourceMappingURL=auth.module.js.map

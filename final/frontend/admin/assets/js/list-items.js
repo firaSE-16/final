@@ -2,6 +2,12 @@ const apiUrl = "http://localhost:8000/products"; // Base URL for API
 const productGrid = document.getElementById("product-grid");
 const loadingSpinner = document.getElementById("loading-spinner");
 
+// Add the token to the request headers for authenticated requests
+function getAuthToken() {
+  // Assuming the token is stored in localStorage. Adjust as necessary.
+  return localStorage.getItem("authToken");
+}
+
 // Fetch and display products
 async function fetchProducts() {
   loadingSpinner.style.display = "flex"; // Show loading spinner
@@ -102,11 +108,14 @@ async function updateProduct(productId) {
     category: document.getElementById("edit-category").value,
   };
 
+  const token = getAuthToken(); // Get the token from localStorage
+
   try {
     const response = await fetch(`${apiUrl}/${productId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`, // Include the token in the header
       },
       body: JSON.stringify(updatedProduct),
     });
@@ -128,9 +137,14 @@ async function updateProduct(productId) {
 async function deleteProduct(productId) {
   const confirmed = confirm("Are you sure you want to delete this product?");
   if (confirmed) {
+    const token = getAuthToken(); // Get the token from localStorage
+
     try {
       const response = await fetch(`${apiUrl}/${productId}`, {
         method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`, // Include the token in the header
+        },
       });
 
       if (response.ok) {

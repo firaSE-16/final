@@ -1,13 +1,15 @@
 import { OrderState } from '../schema/order.schema';
+import { Types } from 'mongoose';
 declare class ProductDto {
-    productId: string;
+    productId: Types.ObjectId;
     quantity: number;
 }
 export declare class CreateOrderDto {
     customerName: string;
     customerEmail: string;
     address: string;
-    state?: OrderState;
     products: ProductDto[];
+    userId: string;
+    state?: OrderState;
 }
 export {};

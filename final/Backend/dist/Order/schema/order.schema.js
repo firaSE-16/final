@@ -54,6 +54,10 @@ __decorate([
     (0, mongoose_1.Prop)({ type: String, enum: OrderState, default: OrderState.PENDING }),
     __metadata("design:type", String)
 ], Order.prototype, "state", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ required: true }),
+    __metadata("design:type", String)
+], Order.prototype, "userId", void 0);
 exports.Order = Order = __decorate([
     (0, mongoose_1.Schema)({ timestamps: true })
 ], Order);

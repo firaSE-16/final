@@ -1,6 +1,11 @@
 import { fetchCartProducts } from "../fetch-api/api.js";
 import { getCart } from "./updateCartBadge.js";
 
+// Function to fetch JWT token from localStorage
+function getAuthToken() {
+  return localStorage.getItem('authToken');
+}
+
 function showSpinner() {
   const spinner = document.getElementById("loading-spinner");
   if (spinner) spinner.style.display = "flex";
@@ -10,7 +15,6 @@ function hideSpinner() {
   const spinner = document.getElementById("loading-spinner");
   if (spinner) spinner.style.display = "none";
 }
-
 
 async function loadComponent(url, placeholderId) {
   try {
@@ -28,9 +32,8 @@ async function loadComponent(url, placeholderId) {
 document.addEventListener("DOMContentLoaded", async () => {
   await loadComponent("../components/header.html", "header-placeholder");
   await loadComponent("../components/footer.html", "footer-placeholder");
-  
-  });
-  
+});
+
 async function displayCheckoutSummary() {
   const cart = getCart();
   const summaryContainer = document.getElementById("checkout-summary");
@@ -89,7 +92,6 @@ async function displayCheckoutSummary() {
   }
 }
 
-
 function handleCheckoutFormSubmission() {
   const form = document.getElementById("checkout-form");
 
@@ -117,16 +119,29 @@ function handleCheckoutFormSubmission() {
     }
 
     showSpinner();
+
+    // Get the JWT token
+    const token = getAuthToken();
+    if (!token) {
+      alert("You must be logged in to place an order.");
+      hideSpinner();
+      return;
+    }
+
     try {
       const response = await fetch("http://localhost:8000/orders", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,  // Add JWT token to the header
+        },
         body: JSON.stringify({
           customerName: name,
           customerEmail: email,
           address,
+          userId: localStorage.getItem("userId"), // Assuming userId is stored in localStorage
           products: cart.map((item) => ({
-            productId: item._id,
+            productId: item._id,  // Assuming item._id is the product ID
             quantity: item.quantity,
           })),
         }),
@@ -135,8 +150,8 @@ function handleCheckoutFormSubmission() {
       if (response.ok) {
         const data = await response.json();
         alert(`Thank you for your order, ${name}! Your order has been placed.`);
-        localStorage.removeItem("cart"); 
-        window.location.href = "./orders.html"; 
+        localStorage.removeItem("cart");
+        window.location.href = "./orders.html";
       } else {
         const errorData = await response.json();
         console.error("Error placing order:", errorData);
@@ -150,7 +165,6 @@ function handleCheckoutFormSubmission() {
     }
   });
 }
-
 
 document.addEventListener("DOMContentLoaded", () => {
   displayCheckoutSummary();

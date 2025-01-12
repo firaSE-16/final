@@ -1,45 +1,41 @@
-import {
-  IsArray,
-  IsEnum,
-  IsMongoId,
-  IsNotEmpty,
-  IsString,
-  IsNumber,
-  ValidateNested,
-  IsOptional,
-} from 'class-validator';
+import { IsString, IsEmail, IsNotEmpty, IsArray, ValidateNested, IsEnum, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
-import { OrderState } from '../schema/order.schema';
+import { OrderState } from '../schema/order.schema'; // Import OrderState enum
+import { Types } from 'mongoose'; // Correct import for ObjectId
 
 class ProductDto {
-  @IsMongoId() // Validates that the productId is a valid MongoDB ObjectId string
-  @IsNotEmpty() // Ensures the productId is not empty
-  productId: string;
+  @IsNotEmpty()
+  productId: Types.ObjectId;  // Use ObjectId type for productId
 
-  @IsNumber() // Validates that the quantity is a number
-  @IsNotEmpty() // Ensures quantity is not empty
+  @IsNotEmpty()
   quantity: number;
 }
 
+
 export class CreateOrderDto {
-  @IsString() // Validates that the customerName is a string
-  @IsNotEmpty() // Ensures the customerName is not empty
+  @IsString()
+  @IsNotEmpty()
   customerName: string;
 
-  @IsString() // Validates that the customerEmail is a string
-  @IsNotEmpty() // Ensures the customerEmail is not empty
+  @IsEmail()
+  @IsNotEmpty()
   customerEmail: string;
 
-  @IsString() // Validates that the address is a string
-  @IsNotEmpty() // Ensures the address is not empty
+  @IsString()
+  @IsNotEmpty()
   address: string;
 
-  @IsEnum(OrderState) // Ensures the state is a valid OrderState enum value
-  @IsOptional() // Makes the state field optional
-  state?: OrderState;
-
-  @IsArray() // Validates that products is an array
-  @ValidateNested({ each: true }) // Validates each item in the products array
-  @Type(() => ProductDto) // Ensures each product item is transformed into ProductDto
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductDto)
   products: ProductDto[];
+
+  @IsString()
+  @IsNotEmpty()
+  userId: string;  // Assuming userId is a string
+
+  // Optional field for state, defaults to 'Pending' if not provided
+  @IsEnum(OrderState)
+  @IsOptional() // Optional because the default is 'Pending' in the schema
+  state?: OrderState; // state can be either 'Pending', 'Completed', or 'Cancelled'
 }

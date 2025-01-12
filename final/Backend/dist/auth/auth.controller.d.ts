@@ -9,7 +9,4 @@ export declare class AuthController {
     login(loginDto: LoginDto): Promise<{
         token: string;
     }>;
-    logout(req: any): Promise<{
-        message: string;
-    }>;
 }

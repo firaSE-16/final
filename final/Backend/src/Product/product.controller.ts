@@ -23,6 +23,7 @@ import { FileUploadService } from './file-upload/file-upload.service'; // Import
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { Role } from 'src/auth/enums/role.enums';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
 @Controller('products')
 export class ProductController {
@@ -30,9 +31,10 @@ export class ProductController {
     private readonly productService: ProductService,
     private readonly fileUploadService: FileUploadService, // Inject the file upload service
   ) {}
-
+  
   @Roles(Role.Admin)
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard,RolesGuard)
+ 
   @Post()
   @UseInterceptors(
     FileInterceptor('image', {
@@ -83,8 +85,9 @@ export class ProductController {
     return this.productService.findOne(id);
   }
 
+  
   @Roles(Role.Admin)
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard,RolesGuard)
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -94,7 +97,7 @@ export class ProductController {
   }
 
   @Roles(Role.Admin)
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard,RolesGuard)
   @Delete(':id')
   async remove(@Param('id') id: string) {
     return this.productService.remove(id);

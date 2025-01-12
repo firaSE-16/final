@@ -13,6 +13,7 @@ const product_schema_1 = require("./schemas/product.schema");
 const product_service_1 = require("./product.service");
 const product_controller_1 = require("./product.controller");
 const file_upload_service_1 = require("./file-upload/file-upload.service");
+const auth_module_1 = require("../auth/auth.module");
 let ProductModule = class ProductModule {
 };
 exports.ProductModule = ProductModule;
@@ -20,6 +21,7 @@ exports.ProductModule = ProductModule = __decorate([
     (0, common_1.Module)({
         imports: [
             mongoose_1.MongooseModule.forFeature([{ name: product_schema_1.Product.name, schema: product_schema_1.ProductSchema }]),
+            auth_module_1.AuthModule,
         ],
         controllers: [product_controller_1.ProductController],
         providers: [product_service_1.ProductService, file_upload_service_1.FileUploadService],
