@@ -17,12 +17,80 @@ function hideSpinner() {
   if (spinner) spinner.style.display = "none";
 }
 
+// Load header and footer, and initialize other functionality once the DOM is ready
 document.addEventListener("DOMContentLoaded", async () => {
+  // Load the header and footer
   await loadComponent("../components/header.html", "header-placeholder");
   await loadComponent("../components/footer.html", "footer-placeholder");
-  // Initialize the cart badge on page load
+  
+  // Initialize the cart badge
   updateCartBadge();
+
+  // Now that the header is loaded, check login status and set up buttons
+  checkAuthStatus();
+  showSpinner();
+  await displayCategories(); // Fetch and display categories
+  await displayProducts(); // Fetch and display all products initially
+  hideSpinner();
 });
+
+/**
+ * Check authentication status and toggle Login/Logout buttons
+ */
+function checkAuthStatus() {
+  const token = localStorage.getItem("authToken");
+
+  const loginBtn = document.getElementById("login-btn");
+  const logoutBtn = document.getElementById("logout-btn");
+
+  if (token) {
+    // If user is logged in, hide login button and show logout button
+    loginBtn.classList.add("d-none");
+    logoutBtn.classList.remove("d-none");
+
+    logoutBtn.addEventListener("click", async () => {
+      await logoutUser(token);
+    });
+  } else {
+    // If user is not logged in, show login button and hide logout button
+    loginBtn.classList.remove("d-none");
+    logoutBtn.classList.add("d-none");
+
+    loginBtn.addEventListener("click", () => {
+      window.location.href = "../pages/login.html"; // Redirect to login page
+    });
+  }
+}
+
+/**
+ * Handle user logout
+ */
+async function logoutUser(token) {
+  try {
+    const response = await fetch("http://localhost:8000/auth/logout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`, // Send token as authorization header
+      },
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // On success, remove the token and redirect to login page
+      localStorage.removeItem("authToken");
+      alert(data.message); // Show logout success message
+      window.location.href = "../pages/login.html"; // Redirect to login page
+    } else {
+      // Handle error (token invalid, etc.)
+      alert("Logout failed: " + data.message);
+    }
+  } catch (error) {
+    console.error("Logout error:", error);
+    alert("Logout failed. Please try again.");
+  }
+}
 
 /**
  * Display product categories as buttons, including an "ALL" button.
@@ -43,10 +111,8 @@ async function displayCategories() {
       <button class="btn btn-outline-dark mx-2 category-btn" data-category="all">ALL</button>
       ${categories
         .map(
-          (category) => `
-          <button class="btn btn-outline-dark mx-2 category-btn" data-category="${category}">
-            ${category.charAt(0).toUpperCase() + category.slice(1)}
-          </button>`
+          (category) => ` 
+          <button class="btn btn-outline-dark mx-2 category-btn" data-category="${category}">${category.charAt(0).toUpperCase() + category.slice(1)}</button>`
         )
         .join("")}`;
 
@@ -85,19 +151,11 @@ async function displayProducts(category = null) {
         (product) => `
         <div class="col-xl-4 p-3">
           <div class="card h-100 shadow-sm" style="min-height: 400px;">
-            <img src="../../Backend${product.image}" class="card-img-top w-100 h-100" alt="${
-          product.title
-        }" style="height: 200px; object-fit: contain;">
+            <img src="../../Backend${product.image}" class="card-img-top w-100 h-100" alt="${product.title}" style="height: 200px; object-fit: contain;">
             <div class="card-body">
-              <h5 class="card-title text-truncate" title="${product.title}">${
-          product.title
-        }</h5>
-              <p class="card-text text-dark fw-bold">$${product.price.toFixed(
-                2
-              )}</p>
-              <button class="btn btn-outline-dark w-100 view-product-btn" data-product-id="${
-                product._id
-              }">View Details</button>
+              <h5 class="card-title text-truncate" title="${product.title}">${product.title}</h5>
+              <p class="card-text text-dark fw-bold">$${product.price.toFixed(2)}</p>
+              <button class="btn btn-outline-dark w-100 view-product-btn" data-product-id="${product._id}">View Details</button>
             </div>
           </div>
         </div>`
@@ -142,21 +200,13 @@ async function displayProductDetails(productId) {
     productGrid.innerHTML = `
       <div class="col-12">
         <div class="card h-100 shadow-sm">
-          <img src="../../Backend${product.image}" class="card-img-top mx-auto" alt="${
-      product.title
-    }" style="height: 300px; width: auto; object-fit: contain;">
+          <img src="../../Backend${product.image}" class="card-img-top mx-auto" alt="${product.title}" style="height: 300px; width: auto; object-fit: contain;">
           <div class="card-body">
             <h3 class="card-title">${product.title}</h3>
             <p class="card-text">${product.description}</p>
-            <p class="card-text text-success fw-bold">$${product.price.toFixed(
-              2
-            )}</p>
-            <p class="card-text">Rating: ${product.rating.rate} (${
-      product.rating.count
-    } reviews)</p>
-            <button class="btn btn-primary w-100 add-to-cart-btn" data-product-id="${
-              product._id
-            }">Add to Cart</button>
+            <p class="card-text text-success fw-bold">$${product.price.toFixed(2)}</p>
+            <p class="card-text">Rating: ${product.rating.rate} (${product.rating.count} reviews)</p>
+            <button class="btn btn-primary w-100 add-to-cart-btn" data-product-id="${product._id}">Add to Cart</button>
           </div>
         </div>
         <button class="btn btn-secondary mt-2" id="back-to-products">Back to Products</button>
@@ -164,13 +214,11 @@ async function displayProductDetails(productId) {
     `;
 
     // Add event listener for the "Back to Products" button
-    document
-      .getElementById("back-to-products")
-      .addEventListener("click", async () => {
-        showSpinner();
-        await displayProducts();
-        hideSpinner();
-      });
+    document.getElementById("back-to-products").addEventListener("click", async () => {
+      showSpinner();
+      await displayProducts();
+      hideSpinner();
+    });
 
     // Add to cart functionality
     document.querySelector(".add-to-cart-btn").addEventListener("click", () => {
@@ -182,30 +230,7 @@ async function displayProductDetails(productId) {
   }
 }
 
-// Initialize the app
-document.addEventListener("DOMContentLoaded", async () => {
-  showSpinner();
-  await displayCategories(); // Fetch and display categories
-  await displayProducts(); // Fetch and display all products initially
-  hideSpinner();
-});
-
-/**
- * Save the cart to localStorage.
- * @param {Array} cart - The cart items to save.
- */
-function saveCart(cart) {
-  localStorage.setItem("cart", JSON.stringify(cart));
-}
-
-/**
- * Add an item to the cart and update the badge.
- * @param {number} productId - The ID of the product to add.
- */
-/**
- * Add an item to the cart and update the badge, ensuring the user is logged in.
- * @param {number} productId - The ID of the product to add.
- */
+// Add to cart functionality
 function addToCart(productId) {
   const token = localStorage.getItem("authToken");
 
@@ -228,5 +253,3 @@ function addToCart(productId) {
   updateCartBadge();
   alert("Item added to cart!");
 }
-
-
