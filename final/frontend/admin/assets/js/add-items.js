@@ -1,8 +1,15 @@
 const apiUrl = "http://localhost:8000/products"; // Base URL for API
 
 // Handle the Add Product Form submission
-document.getElementById("add-item-form").addEventListener("submit", async function(event) {
+document.getElementById("add-item-form").addEventListener("submit", async function (event) {
   event.preventDefault();
+
+  // Get the auth token from localStorage
+  const token = localStorage.getItem("authToken");
+  if (!token) {
+    alert("Authorization token is missing. Please log in again.");
+    return;
+  }
 
   // Prepare form data
   const formData = new FormData();
@@ -18,6 +25,9 @@ document.getElementById("add-item-form").addEventListener("submit", async functi
   try {
     const response = await fetch(apiUrl, {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`, // Add the Authorization header
+      },
       body: formData,
     });
 
@@ -26,7 +36,8 @@ document.getElementById("add-item-form").addEventListener("submit", async functi
       alert("Product added successfully!");
       window.location.href = "list-items.html"; // Redirect to the list page
     } else {
-      alert("Failed to add product.");
+      const errorData = await response.json();
+      alert(`Failed to add product: ${errorData.message || "Unknown error"}`);
     }
   } catch (error) {
     console.error("Error adding product:", error);

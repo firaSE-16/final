@@ -1,30 +1,15 @@
-
- 
-async function loadComponent(url, placeholderId) {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`Failed to load component: ${url}`);
-    }
-    const content = await response.text();
-    document.getElementById(placeholderId).innerHTML = content;
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-document.addEventListener("DOMContentLoaded", async () => {
-  await loadComponent("../components/header.html", "header-placeholder");
-  await loadComponent("../components/footer.html", "footer-placeholder");
-  // Initialize the cart badge on page load
-  });
-  
-  
 // Fetch orders from the backend and display them
 async function displayOrders() {
   try {
-    const response = await axios.get('http://localhost:8000/orders');
-    const orders = response.data.orders;
+    const authToken = localStorage.getItem('authToken'); // Get the authToken from storage or wherever it's stored
+    const response = await fetch('http://localhost:8000/orders', {
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+      },
+    });
+
+    const data = await response.json();
+    const orders = data.orders;
     const ordersContainer = document.getElementById('orders-container');
 
     if (orders.length === 0) {
@@ -35,15 +20,16 @@ async function displayOrders() {
       return;
     }
 
+    // Create HTML structure for each order
     ordersContainer.innerHTML = orders
       .map((order) => {
         const productList = order.products
           .map((product) => {
-            // Access the productId object directly since it now contains details
-            const productTitle = product.productId ? product.productId.title : 'Unknown Product';
-            const productPrice = product.productId && product.productId.price ? product.productId.price.toFixed(2) : 'N/A';
+            const productId = product.productId;
+            const productTitle = productId ? productId.title : 'Unknown Product';
+            const productPrice = productId && productId.price ? productId.price.toFixed(2) : 'N/A';
 
-            return `
+            return ` 
               <li class="list-group-item d-flex justify-content-between align-items-center">
                 <span>${productTitle} (x${product.quantity || 1})</span>
                 <span>$${productPrice}</span>
@@ -51,7 +37,7 @@ async function displayOrders() {
           })
           .join("");
 
-        return `
+        return ` 
           <div class="card mb-4" data-order-id="${order._id}">
             <div class="card-body">
               <h5 class="card-title">Order #${order._id}</h5>
@@ -63,6 +49,9 @@ async function displayOrders() {
               </ul>
               <button class="btn btn-success mark-received-btn" data-order-id="${order._id}">
                 Mark as Received
+              </button>
+              <button class="btn btn-danger remove-order-btn" data-order-id="${order._id}">
+                Remove Order
               </button>
             </div>
           </div>`;
@@ -76,40 +65,72 @@ async function displayOrders() {
         markOrderAsReceived(orderId);
       });
     });
+
+    // Add event listeners for "Remove Order" buttons
+    document.querySelectorAll('.remove-order-btn').forEach((button) => {
+      button.addEventListener('click', (e) => {
+        const orderId = e.target.getAttribute('data-order-id');
+        removeOrder(orderId);
+      });
+    });
+
   } catch (error) {
     console.error("Error fetching orders:", error);
   }
 }
 
-// Mark an order as received, update the backend, and delete the order
+// Mark an order as received
 async function markOrderAsReceived(orderId) {
   if (confirm("Are you sure you want to mark this order as received?")) {
     try {
-      // Step 1: Update the order state to "Completed"
-      const response = await axios.patch(`http://localhost:8000/orders/${orderId}`, {
-        state: 'Completed',
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch(`http://localhost:8000/orders/${orderId}/received`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'application/json',
+        },
       });
 
       if (response.status === 200) {
         alert("Thank you! Your order has been marked as received.");
-        
-        // Step 2: Delete the order after it has been completed
-        await axios.delete(`http://localhost:8000/orders/${orderId}`);
-        
-        // Step 3: Remove the order from the DOM
-        const orderElement = document.querySelector(`[data-order-id="${orderId}"]`);
-        if (orderElement) {
-          orderElement.remove();
-        }
-
-        // Optionally, refresh the list of orders (if you want to reload all orders from the server)
-        // displayOrders(); 
+        // Optionally, refresh the list of orders
+        displayOrders();
       } else {
         alert("Failed to update the order status.");
       }
     } catch (error) {
       console.error("Error updating the order:", error);
       alert("An error occurred while updating the order.");
+    }
+  }
+}
+
+// Remove an order after it's marked as received
+async function removeOrder(orderId) {
+  if (confirm("Are you sure you want to remove this order?")) {
+    try {
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch(`http://localhost:8000/orders/${orderId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${authToken}`,
+        },
+      });
+
+      if (response.status === 200) {
+        alert("Order removed successfully.");
+        // Remove the order from the DOM
+        const orderElement = document.querySelector(`[data-order-id="${orderId}"]`);
+        if (orderElement) {
+          orderElement.remove();
+        }
+      } else {
+        alert("Failed to remove the order.");
+      }
+    } catch (error) {
+      console.error("Error deleting the order:", error);
+      alert("An error occurred while deleting the order.");
     }
   }
 }

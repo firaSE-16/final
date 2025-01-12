@@ -1,29 +1,42 @@
 // Fetch orders from the backend and display them
 async function displayOrders() {
+  const ordersContainer = document.getElementById('orders-container');
+  const loadingSpinner = document.getElementById('loading-spinner');
+  
   try {
-    const response = await fetch('http://localhost:8000/orders');
+    // Show the loading spinner while fetching data
+    loadingSpinner.style.display = 'block';
+
+    const response = await fetch('http://localhost:8000/orders', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('authToken')}`, // JWT token from localStorage
+      },
+    });
+
+    // Hide the loading spinner once the request is complete
+    loadingSpinner.style.display = 'none';
+
+    if (!response.ok) {
+      throw new Error("Failed to fetch orders");
+    }
+
     const data = await response.json();
     const orders = data.orders;
-    const ordersContainer = document.getElementById('orders-container');
 
     if (orders.length === 0) {
-      ordersContainer.innerHTML = `
-        <div class="text-center">
-          <p>You have no orders. Add items to your cart and check them out!</p>
-        </div>`;
+      ordersContainer.innerHTML = `<p class="text-center">No orders available.</p>`;
       return;
     }
 
     // Create HTML structure for each order
     ordersContainer.innerHTML = orders
       .map((order) => {
-        // Create product list based on order.products and handle the product details correctly
+        // Create product list based on order.products
         const productList = order.products
           .map((product) => {
-            const productId = product.productId;
-            const productTitle = productId ? productId.title : 'Unknown Product';
-            const productPrice = productId && productId.price ? productId.price.toFixed(2) : 'N/A';
-
+            const productTitle = product.productId ? product.productId.title : 'Unknown Product';
+            const productPrice = product.productId && product.productId.price ? product.productId.price.toFixed(2) : 'N/A';
             return ` 
               <li class="list-group-item d-flex justify-content-between align-items-center">
                 <span>${productTitle} (x${product.quantity || 1})</span>
@@ -31,7 +44,6 @@ async function displayOrders() {
               </li>`;
           })
           .join("");
-
 
         return ` 
           <div class="card mb-4" data-order-id="${order._id}">
@@ -43,65 +55,86 @@ async function displayOrders() {
               <ul class="list-group mb-3">
                 ${productList}
               </ul>
-              ${order.state === 'Pending' ? 
-                `<button class="btn btn-success mark-received-btn" data-order-id="${order._id}">
-                  Mark as Received
-                </button>` : ''
-              }
+              <div class="d-flex justify-content-between">
+                ${order.state === 'Pending' ? 
+                  `<button class="btn btn-success mark-received-btn" data-order-id="${order._id}">
+                    Mark as Received
+                  </button>` : ''}
+                <button class="btn btn-danger remove-btn" data-order-id="${order._id}">
+                  Remove Order
+                </button>
+              </div>
             </div>
           </div>`;
       })
       .join("");
 
-    // Add event listeners for "Mark as Received" buttons
+    // Add event listeners for "Mark as Received" and "Remove" buttons
     document.querySelectorAll('.mark-received-btn').forEach((button) => {
       button.addEventListener('click', (e) => {
         const orderId = e.target.getAttribute('data-order-id');
         markOrderAsReceived(orderId);
       });
     });
+
+    document.querySelectorAll('.remove-btn').forEach((button) => {
+      button.addEventListener('click', (e) => {
+        const orderId = e.target.getAttribute('data-order-id');
+        removeOrder(orderId);
+      });
+    });
+
   } catch (error) {
     console.error("Error fetching orders:", error);
+    ordersContainer.innerHTML = `<p class="text-center text-danger">Failed to load orders. Please try again later.</p>`;
   }
 }
 
-// Mark an order as received, update the backend, and delete the order
+// Mark an order as received
 async function markOrderAsReceived(orderId) {
   if (confirm("Are you sure you want to mark this order as received?")) {
     try {
-      // Step 1: Update the order state to "Completed"
-      const response = await fetch(`http://localhost:8000/orders/${orderId}`, {
+      const response = await fetch(`http://localhost:8000/orders/${orderId}/received`, {
         method: 'PATCH',
         headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          state: 'Completed',
-        }),
       });
 
-      if (response.status === 200) {
-        alert("Thank you! Your order has been marked as received.");
-
-        // Step 2: Delete the order after it has been completed
-        await fetch(`http://localhost:8000/orders/${orderId}`, {
-          method: 'DELETE',
-        });
-
-        // Step 3: Remove the order from the DOM
-        const orderElement = document.querySelector(`[data-order-id="${orderId}"]`);
-        if (orderElement) {
-          orderElement.remove();
-        }
-
-        // Optionally, refresh the list of orders (if you want to reload all orders from the server)
-        // displayOrders();
+      if (response.ok) {
+        alert("Order marked as received.");
+        displayOrders(); // Reload the orders after the action
       } else {
-        alert("Failed to update the order status.");
+        alert("Failed to update the order.");
       }
     } catch (error) {
-      console.error("Error updating the order:", error);
+      console.error("Error updating order:", error);
       alert("An error occurred while updating the order.");
+    }
+  }
+}
+
+// Remove an order
+async function removeOrder(orderId) {
+  if (confirm("Are you sure you want to remove this order?")) {
+    try {
+      const response = await fetch(`http://localhost:8000/orders/${orderId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        },
+      });
+
+      if (response.ok) {
+        alert("Order removed successfully.");
+        displayOrders(); // Reload the orders after the action
+      } else {
+        alert("Failed to remove the order.");
+      }
+    } catch (error) {
+      console.error("Error removing order:", error);
+      alert("An error occurred while removing the order.");
     }
   }
 }

@@ -10,13 +10,18 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const config_1 = require("@nestjs/config");
+const jwt_1 = require("@nestjs/jwt");
 const product_module_1 = require("./Product/product.module");
 const order_module_1 = require("./Order/order.module");
-const jwt_1 = require("@nestjs/jwt");
+const auth_module_1 = require("./auth/auth.module");
 const app_service_1 = require("./app.service");
 const app_controller_1 = require("./app.controller");
-const auth_module_1 = require("./auth/auth.module");
 let AppModule = class AppModule {
+    configure(consumer) {
+        consumer
+            .apply()
+            .forRoutes('*');
+    }
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
@@ -40,10 +45,10 @@ exports.AppModule = AppModule = __decorate([
             }),
             product_module_1.ProductModule,
             order_module_1.OrderModule,
-            auth_module_1.AuthModule
+            auth_module_1.AuthModule,
         ],
         controllers: [app_controller_1.AppController],
-        providers: [app_service_1.AppService]
+        providers: [app_service_1.AppService],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

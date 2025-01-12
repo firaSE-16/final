@@ -4,11 +4,11 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order, OrderDocument } from './schema/order.schema';
 export declare class OrderService {
     private readonly orderModel;
-    private readonly logger;
     constructor(orderModel: Model<OrderDocument>);
     create(createOrderDto: CreateOrderDto): Promise<Order>;
+    findByUserId(userId: string): Promise<Order[]>;
     findAll(): Promise<Order[]>;
     findOne(id: string): Promise<Order>;
     update(id: string, updateOrderDto: UpdateOrderDto): Promise<Order>;
-    remove(id: string): Promise<void>;
+    remove(id: string): Promise<Order>;
 }

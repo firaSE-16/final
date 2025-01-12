@@ -26,7 +26,7 @@ let AuthService = class AuthService {
         this.tokenBlacklist = new Set();
     }
     async signUp(signUpDto) {
-        const { name, email, password } = signUpDto;
+        const { name, email, password, role } = signUpDto;
         const existingUser = await this.useModel.findOne({ email });
         if (existingUser) {
             throw new common_1.HttpException('Email already in use', common_1.HttpStatus.BAD_REQUEST);
@@ -36,9 +36,9 @@ let AuthService = class AuthService {
             name,
             email,
             password: hashedPassword,
-            role: 'user',
+            role: role || 'user',
         });
-        const token = this.jwtService.sign({ id: user._id }, { expiresIn: '1d' });
+        const token = this.jwtService.sign({ id: user._id, role: user.role }, { expiresIn: '1d' });
         return { token };
     }
     async login(loginDto) {

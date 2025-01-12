@@ -202,7 +202,19 @@ function saveCart(cart) {
  * Add an item to the cart and update the badge.
  * @param {number} productId - The ID of the product to add.
  */
+/**
+ * Add an item to the cart and update the badge, ensuring the user is logged in.
+ * @param {number} productId - The ID of the product to add.
+ */
 function addToCart(productId) {
+  const token = localStorage.getItem("authToken");
+
+  if (!token) {
+    alert("Please log in to add items to the cart.");
+    window.location.href = "login.html"; 
+    return;
+  }
+
   const cart = getCart();
   const existingItem = cart.find((item) => item._id === productId);
 
@@ -217,6 +229,4 @@ function addToCart(productId) {
   alert("Item added to cart!");
 }
 
-/**
- * Update the cart badge with the number of items.
- */
+

@@ -13,15 +13,14 @@ exports.CreateOrderDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 const order_schema_1 = require("../schema/order.schema");
+const mongoose_1 = require("mongoose");
 class ProductDto {
 }
 __decorate([
-    (0, class_validator_1.IsMongoId)(),
     (0, class_validator_1.IsNotEmpty)(),
-    __metadata("design:type", String)
+    __metadata("design:type", mongoose_1.Types.ObjectId)
 ], ProductDto.prototype, "productId", void 0);
 __decorate([
-    (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", Number)
 ], ProductDto.prototype, "quantity", void 0);
@@ -34,7 +33,7 @@ __decorate([
     __metadata("design:type", String)
 ], CreateOrderDto.prototype, "customerName", void 0);
 __decorate([
-    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsEmail)(),
     (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], CreateOrderDto.prototype, "customerEmail", void 0);
@@ -44,14 +43,19 @@ __decorate([
     __metadata("design:type", String)
 ], CreateOrderDto.prototype, "address", void 0);
 __decorate([
-    (0, class_validator_1.IsEnum)(order_schema_1.OrderState),
-    (0, class_validator_1.IsOptional)(),
-    __metadata("design:type", String)
-], CreateOrderDto.prototype, "state", void 0);
-__decorate([
     (0, class_validator_1.IsArray)(),
     (0, class_validator_1.ValidateNested)({ each: true }),
     (0, class_transformer_1.Type)(() => ProductDto),
     __metadata("design:type", Array)
 ], CreateOrderDto.prototype, "products", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    __metadata("design:type", String)
+], CreateOrderDto.prototype, "userId", void 0);
+__decorate([
+    (0, class_validator_1.IsEnum)(order_schema_1.OrderState),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], CreateOrderDto.prototype, "state", void 0);
 //# sourceMappingURL=create-order.dto.js.map
