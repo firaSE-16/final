@@ -66,11 +66,50 @@
             0
           </span>
         </a>
-        <a href="../pages/login.html" class=" mx-1 py-1 btn btn-dark opacity-25 fw-bold ">
+        <a href="../pages/login.html" id="login-btn" class=" mx-1 py-1 btn btn-dark opacity-25 fw-bold ">
           Login        </a>
+        <a  id="logout-btn" class="d-none mx-1 py-1 btn btn-dark opacity-25 fw-bold  ">
+          Logout     </a>
        
       </div>
       <div>
     </div>
   </nav>
 </header>
+<script>
+  document.getElementById('logout-btn').addEventListener('click', async () => {
+  const token = localStorage.getItem('authToken'); 
+  if (token) {
+      try {
+          const response = await fetch('http://localhost:8000/auth/logout', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}` 
+              },
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+             console.log("hello");
+              localStorage.removeItem('authToken');
+
+             
+              window.location.href = 'index.html'; // Redirect to index page
+          } else {
+              // Handle error (token invalid, etc.)
+              alert('Logout failed: ' + data.message);
+          }
+      } catch (error) {
+          console.error('Logout error:', error);
+          alert('Logout failed. Please try again.');
+      }
+  } else {
+      // If no token is found, redirect to login page directly
+      window.location.href = 'login.html';
+  }
+});
+
+
+</script>
